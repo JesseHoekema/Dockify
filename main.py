@@ -131,19 +131,6 @@ def get_docker_client():
         return client
     except Exception as unix_error:
         logger.warning(f"Failed to connect via Unix socket: {unix_error}")
-    try:
-        client = docker.DockerClient(base_url="npipe:////./pipe/docker_engine")
-        client.ping()
-        return client
-    except Exception as win_error:
-        logger.warning(f"Failed to connect via Windows pipe: {win_error}")
-    try:
-        client = docker.DockerClient(base_url="tcp://localhost:2375")
-        client.ping()
-        return client
-    except Exception as tcp_error:
-        logger.error(f"All Docker connection methods failed: {tcp_error}")
-        raise RuntimeError("Could not connect to Docker. Ensure Docker is running and accessible.")
 
 def hash_password(password):
     """Hash a password using SHA-256."""
