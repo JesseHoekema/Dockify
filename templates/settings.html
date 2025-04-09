@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings Page</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            padding: 20px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+            gap: 20px;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 250px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background-color: white;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .option-icon {
+            width: 28px;
+            height: 28px;
+            margin-right: 12px;
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .option-text {
+            font-size: 16px;
+            font-weight: 500;
+            color: #000;
+        }
+
+        .content-area {
+            flex: 1;
+            border-radius: 6px;
+            height: 90vh;
+            max-width: 90%;
+            border: none;
+        }
+        i {
+            font-size: 24px;
+        }
+        .red {
+            background-color: #ff0000;
+            color: white !important;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="option" onclick="account()">
+            <div class="option-icon">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="option-text">Account</div>
+        </div>
+        <div class="option" onclick="background()">
+            <div class="option-icon">
+                <i class="fa-regular fa-image"></i>
+            </div>
+            <div class="option-text">Background</div>
+        </div>
+        <div class="option red" onclick="deleteAccount()">
+            <div class="option-icon">
+                <i class="fa-solid fa-trash"></i>
+            </div>
+            <div class="option-text">Reset System</div>
+        </div>
+    </div>
+
+    <iframe class="content-area" src="/settings/account" id="content-area"></iframe>
+    <script>
+        const iframe = document.getElementById('content-area');
+
+        function account() {
+            iframe.src = "/settings/account"
+        }
+        function background() {
+            iframe.src = "/settings/background"
+        }
+        function deleteAccount() {
+            iframe.src = "/settings/delete"
+        }
+        function getBackground() {
+            const bodyVar = document.body
+            fetch('/api/settings/background')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.background === 'background-1' || data.background === '/background-1') {
+                        bodyVar.style.backgroundImage = "url('/background-1')";
+                    } else if (data.background === 'background-2' || data.background === '/background-2') {
+                        bodyVar.style.backgroundImage = "url('/background-2')";
+                    }
+                })
+                .catch(error => console.error('Error fetching settings:', error));
+        }
+        getBackground()
+        const channel = new BroadcastChannel("background_channel");
+        channel.onmessage = function (event) {
+            if (event.data === "background_edit") {
+                getBackground();
+            }
+        };
+    </script>
+</body>
+
+</html>

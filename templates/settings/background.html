@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf/notyf.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/notyf/notyf.min.js"></script>
+    <style>
+        body {
+            margin: 0px;
+            font-family: system-ui, sans-serif;
+            color: white;
+        }
+
+        input,
+        select {
+            width: 30%;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        button[type=submit] {
+            background-color: green;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 32.5%;
+        }
+
+        .notyf-custom {
+            font-family: 'Arial', sans-serif;
+            font-weight: bold;
+        }
+
+
+        .notyf-success {
+            border-radius: 8px;
+            /* Rounded corners */
+        }
+
+        .notyf-error {
+            border-radius: 8px;
+            /* Rounded corners */
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Change Background</h1>
+    <select style="margin-top: 10px;" id="background" onchange="setBackground()">
+        <option disabled selected value="1">Select Background ⬇</option>
+        <option value="2">Default</option>
+        <option value="3">Blue</option>
+    </select>
+    <script>
+        const channel = new BroadcastChannel("background_channel");
+        const select = document.getElementById('background');
+        const notyf = new Notyf({
+            duration: 2000, // Time before hiding (ms)
+            dismissible: false, // Allow manual close
+            position: { x: 'center', y: 'top' },
+            className: "notyf-custom",
+            types: [
+                {
+                    type: 'success',
+                    background: 'green',
+                    duration: 2000,
+                    dismissible: false,
+                    ripple: false, // Disable ripple effect
+                    className: "notyf-success"
+                },
+                {
+                    type: 'error',
+                    background: 'red',
+                    duration: 2000,
+                    dismissible: false,
+                    ripple: false, // Disable ripple effect
+                    className: "notyf-error"
+                }
+            ]
+        });
+        // select.selectedIndex = 1; 
+
+        function getBackground() {
+            const select = document.getElementById('background');
+            fetch('http://127.0.0.1:5000/api/settings/background')
+                .then(response => response.json())
+                .then(data => {
+                    const background = data.background;
+                    console.log(background)
+                    if (background) {
+                        if (background === 'background-1' || data.background === '/background-1') {
+                            select.selectedIndex = 1;
+                        } else if (background === 'background-2' || data.background === '/background-2') {
+                            select.selectedIndex = 2;
+                        }
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+
+        }
+        function setBackground() {
+            const selected = select.value
+
+            if (selected === '2') {
+                const info = {
+                    "url": "background-1"
+                };
+                fetch('/api/settings/background/set', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(info)
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Success:', data);
+                        channel.postMessage("background_edit", "*"); // "*" betekent dat het naar alle origins kan gaan.
+                        notyf.success("Changes Sucessfull!");
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                        notyf.error("Error While Changing!");
+                    });
+            } else if (selected === '3') {
+                // background 2
+                const info = {
+                    "url": "background-2"
+                };
+                fetch('/api/settings/background/set', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(info)
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Success:', data);
+                        channel.postMessage("background_edit", "*"); // "*" betekent dat het naar alle origins kan gaan.
+                        notyf.success("Changes Sucessfull!");
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                        notyf.error("Error While Changing!");
+                    });
+            }
+        }
+        getBackground()
+    </script>
+</body>
+
+</html>

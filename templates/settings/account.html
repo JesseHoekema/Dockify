@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf/notyf.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/notyf/notyf.min.js"></script>
+    <style>
+        body {
+            margin: 0px;
+            font-family: system-ui, sans-serif;
+            color: white;
+        }
+
+        input,
+        select {
+            width: 30%;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        button[type=submit] {
+            background-color: green;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 32.5%;
+        }
+        .notyf-custom {
+            font-family: 'Arial', sans-serif;
+            font-weight: bold;
+        }
+
+        
+        .notyf-success {
+            border-radius: 8px;
+            /* Rounded corners */
+        }
+
+        .notyf-error {
+            border-radius: 8px;
+            /* Rounded corners */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main">
+
+        <h1>Change Account Settings</h1>
+        <input type="text" placeholder="Username" required id="username">
+        <br>
+        <input type="password" placeholder="Password" required id="password">
+        <br>
+        <button type="submit" onclick="changeSettings()">
+            Change
+        </button>
+    </div>
+    <div id="toast-container"></div>
+    <script>
+        const username = document.getElementById('username');
+        const password = document.getElementById('password');
+        const notyf = new Notyf({
+            duration: 2000, // Time before hiding (ms)
+            dismissible: false, // Allow manual close
+            position: { x: 'center', y: 'top' },
+            className: "notyf-custom",
+            types: [
+                {
+                    type: 'success',
+                    background: 'green',
+                    duration: 2000,
+                    dismissible: false,
+                    ripple: false, // Disable ripple effect
+                    className: "notyf-success"
+                },
+                {
+                    type: 'error',
+                    background: 'red',
+                    duration: 2000,
+                    dismissible: false,
+                    ripple: false, // Disable ripple effect
+                    className: "notyf-error"
+                }
+            ]
+        });
+
+        function changeSettings() {
+            // Get the current values from the input fields
+            const usernameData = username.value;
+            const passwordData = password.value;
+
+            const data = {
+                username: usernameData,
+                password: passwordData
+            };
+
+            fetch('/api/system/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Success:', data);
+                    notyf.success("Changes Sucessfull!");
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    notyf.error("Error While Changing!");
+                });
+
+
+        }
+    </script>
+</body>
+
+</html>

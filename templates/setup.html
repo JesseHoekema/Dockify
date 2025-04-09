@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - Setup System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            height: 550px;
+            overflow: hidden;
+            border-radius: 20px;
+        }
+
+        .page {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: white;
+            border-radius: 20px;
+            padding: 40px 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .page1 {
+            left: 0;
+        }
+
+        .page2 {
+            left: 100%;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .astronaut-icon, .image-icon {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 20px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .next-btn {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            width: 50px;
+            height: 50px;
+            background-color: #FFA69E;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease;
+        }
+
+        .next-btn:hover {
+            background-color: #ff8a7e;
+        }
+
+        .next-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+        .dots {
+            display: flex;
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #ddd;
+            margin: 0 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .dot.active {
+            background-color: #FFA69E;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="page page1">
+            <h1>Welcome</h1>
+            <p>Let's set up your system</p>
+            <img class="astronaut-icon" src="/astronaut" alt="Astronaut Icon">
+            <input type="text" placeholder="Username" required id="username">
+            <input type="password" placeholder="Password" required id="password">
+            <div class="next-btn" id="nextBtn1">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 6l6 6-6 6" stroke="white" stroke-width="2" fill="none" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="page page2">
+            <h1>Welcome</h1>
+            <p>Select your desired background</p>
+            <img class="image-icon" src="/bg-icon" alt="Background Icon">
+            <select id="background">
+                <option value="" disabled selected>Select Background ⬇</option>
+                <option value="Default">Default</option>
+                <option value="Blue">Blue</option>
+            </select>
+            <div class="next-btn" id="nextBtn2">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 6l6 6-6 6" stroke="white" stroke-width="2" fill="none" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="dots">
+            <div class="dot active" id="dot1"></div>
+            <div class="dot" id="dot2"></div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const nextBtn1 = document.getElementById('nextBtn1');
+            const nextBtn2 = document.getElementById('nextBtn2');
+            const page1 = document.querySelector('.page1');
+            const page2 = document.querySelector('.page2');
+            const dot1 = document.getElementById('dot1');
+            const dot2 = document.getElementById('dot2');
+            const username = document.getElementById('username');
+            const password = document.getElementById('password');
+            const background = document.getElementById('background');
+
+            // Function to validate required fields
+            const validateFields = (fields) => {
+                return fields.every(field => field.value.trim() !== '');
+            };
+
+            // Function to handle API calls with error handling
+            const makeApiCall = async (url, data) => {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`API error: ${response.status}`);
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    console.error(`Error with API call to ${url}:`, error);
+                    throw error;
+                }
+            };
+
+            // Move to page 2
+            nextBtn1.addEventListener('click', () => {
+                if (!validateFields([username, password])) {
+                    alert('Please enter both username and password.');
+                    return;
+                }
+
+                // Transition to the next page
+                page1.style.transform = 'translateX(-100%)';
+                page2.style.transform = 'translateX(-100%)';
+                dot1.classList.remove('active');
+                dot2.classList.add('active');
+            });
+
+            // Complete setup and redirect
+            nextBtn2.addEventListener('click', async () => {
+                if (!validateFields([background])) {
+                    alert('Please select a background.');
+                    return;
+                }
+
+                try {
+                    // Register user
+                    const userData = {
+                        username: username.value.trim(),
+                        password: password.value.trim()
+                    };
+                    await makeApiCall('/api/system/register', userData);
+                    
+                    // Set background preference
+                    const backgroundValue = background.value;
+                    const backgroundUrl = backgroundValue === 'Default' ? '/background-1' : '/background-2';
+                    await makeApiCall('/api/settings/background/set', { url: backgroundUrl });
+                    
+                    // Mark setup as complete
+                    await makeApiCall('/api/settings/firstsetup', { status: false });
+                    
+                    // Redirect to login page
+                    window.location.href = "/login";
+                } catch (error) {
+                    alert('There was an error completing the setup. Please try again.');
+                }
+            });
+
+            // Preview background when selection changes
+            background.addEventListener('change', event => {
+                const selectedValue = event.target.value;
+                const backgroundUrl = selectedValue === 'Default' ? '/background-1' : '/background-2';
+                document.body.style.backgroundImage = `url('${backgroundUrl}')`;
+            });
+        });
+    </script>
+</body>
+
+</html>

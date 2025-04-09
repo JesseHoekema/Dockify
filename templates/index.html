@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker Containers</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            background-color: #f4f4f9;
+            /* Fallback color */
+            margin: 0;
+            color: white;
+            padding: 20px;
+            background-image: url('/background-1');
+            /* Ensure the path is correct */
+            background-size: cover;
+            /* Ensures the image covers the entire container */
+            background-repeat: no-repeat;
+            /* Prevents the image from repeating */
+            background-position: center;
+            /* Centers the image */
+            min-height: 100vh;
+            /* Ensures the body spans the full viewport height */
+            overflow: hidden;
+        }
+
+        .container-box {
+            background-size: cover;
+            background-position: bottom center;
+            background-attachment: fixed;
+            background-color: rgba(53, 54, 58, 0.4);
+            -webkit-backdrop-filter: blur(5px) saturate(180%);
+            backdrop-filter: blur(5px) saturate(180%);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 150px;
+            height: 150px;
+            margin-left: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            font-weight: 400;
+
+            position: relative;
+        }
+
+        .container-box:hover {
+            box-shadow: 0px 0px 17px 0px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .container-box h3 {
+            margin-top: 5px;
+            font-weight: 500;
+            white-space: nowrap;
+            font-size: 14px;
+        }
+
+        .container-box p {
+            margin: 5px 0;
+        }
+
+
+
+        /* Style for stopped containers */
+        .container-box.disabled {
+            /* Voorkomt klikken */
+            opacity: 0.5;
+            /* Maakt het visueel duidelijk */
+        }
+
+        .container-box.disabled a {
+            pointer-events: none;
+            /* Prevent clicking */
+            color: #aaa;
+            /* Greyed-out text */
+        }
+
+        .app-icon {
+            max-width: 70px;
+            filter: brightness(0) invert(1);
+            /* Make the icon white */
+        }
+
+        .apps {
+            display: flex;
+            flex-wrap: wrap;
+            /* Allows child elements to wrap to the next line */
+            /* Adds spacing between the child elements */
+        }
+
+        .main {
+            display: flex;
+            margin-left: 6.77vw;
+            margin-top: 50px;
+        }
+
+        .time {
+            background-size: cover;
+            background-position: bottom center;
+            background-attachment: fixed;
+            background-color: rgba(53, 54, 58, 0.4);
+            -webkit-backdrop-filter: blur(5px) saturate(180%);
+            backdrop-filter: blur(5px) saturate(180%);
+            border-radius: 8px;
+            padding: 1px 20px;
+            padding-right: 100px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        .time:hover {
+            box-shadow: 0px 0px 17px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        .system-status {
+            width: 250px;
+
+            border-radius: 8px;
+            padding-left: 15px;
+            background-size: cover;
+            background-position: bottom center;
+            background-attachment: fixed;
+            background-color: rgba(53, 54, 58, 0.4);
+            -webkit-backdrop-filter: blur(5px) saturate(180%);
+            backdrop-filter: blur(5px) saturate(180%);
+            border-radius: 8px;
+            padding-right: 70px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        .system-status:hover {
+            box-shadow: 0px 0px 17px 0px rgba(0, 0, 0, 0.2);
+        }
+
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header h2 {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .header span {
+            font-size: 17px;
+            color: #4caf50;
+        }
+
+        .metrics {
+            display: flex;
+            justify-content: space-between;
+            width: 250px !important;
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .progress-circle {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto;
+        }
+
+        .progress-circle svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .progress-circle span {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .metric h3 {
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .metric p {
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        /* Progress circle animation */
+        .progress-circle .foreground {
+            stroke-dasharray: 94.2;
+            transition: stroke-dashoffset 0.5s ease-in-out;
+        }
+
+        .procent {
+            font-size: 20px !important;
+        }
+
+        .menu {
+            background-color: rgb(53, 54, 58);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2.75rem;
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+        }
+
+        .fa-gear {
+            font-size: 1.25rem;
+            transition: all 0.5s ease;
+            padding: 5px;
+        }
+
+        .fa-arrow-right-from-bracket {
+            font-size: 1.25rem;
+            transition: all 0.5s ease;
+            padding: 5px;
+            margin-left: 10px;
+        }
+
+        .fa-gear:hover {
+            transform: rotate(50deg);
+            background: rgba(255, 255, 255, 0.1);
+            /* Lichtgrijze achtergrond */
+            border-radius: 50%;
+            /* Zorgt voor een ronde vorm */
+            /* Maakt de achtergrond wat groter */
+        }
+
+        .app-box {
+            position: fixed;
+            top: 0px;
+            left: 0px;
+            right: 0px;
+            bottom: 0px;
+            transform: translateY(100%);
+            transition: all 1s ease;
+        }
+
+        .app-box iframe {
+            position: fixed;
+            top: 2.75rem;
+            width: 100%;
+            height: 100vh;
+            border: 0px;
+        }
+
+        .app-box .app-header {
+            position: fixed;
+            top: 0px;
+            left: 0px;
+            right: 0px;
+            background-color: #fff;
+            height: 2.75rem;
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+        }
+
+        .app-box-show {
+            transform: translateY(0);
+        }
+
+        .fa-xmark {
+            color: black;
+            font-size: 1.50rem;
+        }
+
+        .fa-ellipsis-vertical {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 17px;
+            cursor: pointer;
+            pointer-events: auto;
+            padding: 5px;
+        }
+
+        .fa-ellipsis-vertical:active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .dots-menu {
+            background-color: #fff;
+            color: black;
+            position: absolute;
+            top: 45px;
+            right: 10px;
+            border-radius: 5px;
+            width: 100px;
+            display: none;
+            z-index: 3;
+        }
+
+        .dots-menu-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            padding-bottom: 1px;
+            cursor: pointer;
+            gap: 8px;
+        }
+
+        .dots-menu-item-stop {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            cursor: pointer;
+            color: red;
+        }
+
+        .dots-menu.active {
+            display: block;
+            /* Show the menu */
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+</head>
+
+<body>
+    <div class="menu">
+        <i class="fa-solid fa-gear" onclick="showSettings('/settings')"></i>
+        <i class="fa-solid fa-arrow-right-from-bracket" onclick="logout()"></i>
+    </div>
+    <div class="main">
+        <div class="sidebar">
+            <div class="time">
+                <h1 id="current-time">14:10</h1>
+                <p id="current-date">Tuesday, April 1, 2025</p>
+            </div>
+            <div class="system-status">
+                <div class="header">
+                    <h2>System status</h2>
+                </div>
+                <div class="metrics">
+                    <div class="metric cpu">
+                        <div class="progress-circle">
+                            <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+                                <circle class="background" cx="18" cy="18" r="15" stroke="#6B95AC" stroke-width="3"
+                                    fill="none"></circle>
+                                <circle class="foreground" cx="18" cy="18" r="15" stroke="#32FFAA" stroke-width="3"
+                                    fill="none" stroke-dasharray="94.2" stroke-dashoffset="94.2"></circle>
+                            </svg>
+                            <span class="procent">{{ system_stats.cpu_usage }}%</span>
+                        </div>
+                        <h3>CPU</h3>
+                    </div>
+                    <div class="metric ram">
+                        <div class="progress-circle">
+                            <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+                                <circle class="background" cx="18" cy="18" r="15" stroke="#6B95AC" stroke-width="3"
+                                    fill="none"></circle>
+                                <circle class="foreground" cx="18" cy="18" r="15" stroke="#32FFAA" stroke-width="3"
+                                    fill="none" stroke-dasharray="94.2" stroke-dashoffset="94.2"></circle>
+                            </svg>
+                            <span class="procent">{{ system_stats.ram_usage }}%</span>
+                        </div>
+                        <h3>RAM</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="apps">
+            {% if containers %}
+            {% for container in containers %}
+            {% if container.status == 'running' %}
+            <a href="{{ container.url }}" target="_blank" style="text-decoration: none; color: inherit;">
+                <div class="container-box">
+                    <!-- Icon for menu toggle -->
+                    <i class="fa-solid fa-ellipsis-vertical" onclick="handleIconClick(event)"></i>
+                    <img src="{{ container.icon }}" alt="{{ container.name }} icon" class="app-icon">
+                    <h3>{{ container.name }}</h3>
+                    <div class="dots-menu">
+                        <div class="dots-menu-item" onclick="performAction('start', '{{ container.id }}')">
+                            <i class="fa-solid fa-power-off"></i>
+                            <p>Start</p>
+                        </div>
+                        <div class="dots-menu-item dots-menu-item-stop"
+                            onclick="performAction('stop', '{{ container.id }}')">
+                            <i class="fa-solid fa-power-off"></i>
+                            <p>Stop</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {% else %}
+            <div class="container-box disabled">
+                <i class="fa-solid fa-ellipsis-vertical" onclick="handleIconClick(event)"></i>
+                <img src="{{ container.icon }}" alt="{{ container.name }} icon" class="app-icon">
+                <h3>{{ container.name }}</h3>
+                <div class="dots-menu">
+                    <div class="dots-menu-item" onclick="performAction('start', '{{ container.id }}')">
+                        <i class="fa-solid fa-power-off"></i>
+                        <p>Start</p>
+                    </div>
+                    <div class="dots-menu-item dots-menu-item-stop"
+                        onclick="performAction('stop', '{{ container.id }}')">
+                        <i class="fa-solid fa-power-off"></i>
+                        <p>Stop</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+            {% else %}
+            <p>No containers with web interfaces are currently available.</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="app-box">
+        <div class="app-header">
+            <i class="fa-solid fa-xmark" onclick="hideSettings()"></i>
+        </div>
+        <div class="app-content">
+            <iframe src="https://example.com" id="appiframe"></iframe>
+        </div>
+    </div>
+    <script>
+        function updateTime() {
+            const now = new Date();
+
+            // Format the time as HH:MM
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            hours = hours < 10 ? "0" + hours : hours;
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+            const currentTime = `${hours}:${minutes}`;
+
+            // Format the date as Weekday, Month Day, Year
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const currentDate = now.toLocaleDateString(undefined, options);
+
+            // Update the DOM elements
+            document.getElementById("current-time").textContent = currentTime;
+            document.getElementById("current-date").textContent = currentDate;
+        }
+
+        // Update the time immediately and then every second
+        updateTime();
+        setInterval(updateTime, 1000);
+        async function fetchSystemStats() {
+            // Example data
+            const response = await fetch('/api/system/stats'); // Vervang met jouw API URL
+            const data = await response.json();
+            const systemStats = {
+                cpu_usage: data.cpu_usage,
+                ram_usage: data.ram_usage,
+            };
+            const cpuCircle = document.querySelector('.cpu .foreground');
+            const ramCircle = document.querySelector('.ram .foreground');
+
+            // Update CPU progress circle
+            updateProgressCircle(cpuCircle, systemStats.cpu_usage);
+
+            // Update RAM progress circle
+            updateProgressCircle(ramCircle, systemStats.ram_usage);
+
+            // Update spans with usage percentages
+            document.querySelector('.cpu span').textContent = `${systemStats.cpu_usage}%`;
+            document.querySelector('.ram span').textContent = `${systemStats.ram_usage}%`;
+        }
+
+        // Function to update progress circles
+        function updateProgressCircle(element, usage) {
+            const total = 100; // Total percentage
+            const circumference = 94.2; // Circumference of the circle (2 * π * radius)
+            const offset = ((total - usage) / total) * circumference;
+
+            element.style.strokeDashoffset = offset.toFixed(2);
+        }
+        function handleIconClick(event) {
+            event.preventDefault();
+
+            // Stop the click event from propagating to the parent <a>
+            event.stopPropagation();
+
+            // Find the closest .container-box
+            const containerBox = event.target.closest('.container-box');
+
+            if (containerBox) {
+                // Find the .dots-menu inside the same .container-box
+                const dotsMenu = containerBox.querySelector('.dots-menu');
+
+                if (dotsMenu) {
+                    // Toggle the 'active' class on the .dots-menu
+                    dotsMenu.classList.toggle('active');
+                }
+            }
+        }
+        function showSettings(srcUrl) {
+            document.getElementById('appiframe').src = srcUrl;
+            let item = document.querySelector('.app-box');
+            item.classList.add('app-box-show');
+        }
+        function hideSettings() {
+            let item = document.querySelector('.app-box');
+            item.classList.remove('app-box-show');
+        }
+        function getBackground() {
+            const bodyVar = document.body
+            fetch('/api/settings/background')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.background === 'background-1' || data.background === '/background-1') {
+                        bodyVar.style.backgroundImage = "url('/background-1')";
+                    } else if (data.background === 'background-2' || data.background === '/background-2') {
+                        bodyVar.style.backgroundImage = "url('/background-2')";
+                    }
+                })
+                .catch(error => console.error('Error fetching settings:', error));
+        }
+        function logout() {
+            window.location.href = '/logout';
+        }
+        getBackground()
+        const channel = new BroadcastChannel("background_channel");
+        channel.onmessage = function (event) {
+            if (event.data === "background_edit") {
+                getBackground();
+            } else if (event.data === "redirect_delete") {
+                window.location.href = '/setup';
+            }
+        };
+        async function performAction(action, containerId) {
+            event.preventDefault();
+
+            // Stop the click event from propagating to the parent <a>
+            event.stopPropagation();
+
+            if (!containerId) {
+                alert('Please enter a valid Container ID.');
+                return;
+            }
+
+            // Prepare payload
+            const payload = {
+                container_id: containerId,
+                action: action
+            };
+
+            // Send POST request to the API
+            try {
+                const response = await fetch('/api/container/action', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                // Display response
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        // Select elements
+        fetchSystemStats()
+        setInterval(fetchSystemStats, 5000);
+    </script>
+</body>
+
+</html>
